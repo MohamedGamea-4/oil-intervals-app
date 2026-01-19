@@ -634,7 +634,6 @@
             const today = new Date().toISOString().split('T')[0];
             const savedEngines = Storage.getAllEngines();
             
-            // Build equipment list from all ferries
             let allEquipment = [];
             savedEngines.forEach(ferry => {
                 if (ferry.mainEngine1) allEquipment.push({label: ferry.mainEngine1, ferry: ferry.name});
