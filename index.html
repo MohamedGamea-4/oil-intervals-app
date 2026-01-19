@@ -386,13 +386,17 @@
                         <div style="margin-top: 20px;">
                             <label style="font-weight: 600; margin-bottom: 12px; display: block;">Saved Ferries:</label>
                             ${savedEngines.map(eng => {
-                                const lastServiceDates = {};
+                                const lastServiceInfo = {};
                                 const equipmentNames = ['mainEngine1', 'mainEngine2', 'auxEngine1', 'auxEngine2', 'hydraulic1', 'hydraulic2', 'propeller1', 'propeller2'];
                                 
                                 equipmentNames.forEach(eq => {
                                     if (eng[eq]) {
                                         const latest = Storage.getLatestRecord(eng[eq]);
-                                        lastServiceDates[eq] = latest ? new Date(latest.date) : null;
+                                        lastServiceInfo[eq] = latest ? { 
+                                            date: new Date(latest.date), 
+                                            hours: latest.hours,
+                                            record: latest
+                                        } : null;
                                     }
                                 });
                                 
@@ -400,17 +404,16 @@
                                 let alertColor = '#fff';
                                 let alertMessage = '';
                                 
-                                Object.values(lastServiceDates).forEach(date => {
-                                    if (date) {
-                                        const daysSince = Math.floor((Date.now() - date) / (1000 * 60 * 60 * 24));
-                                        if (daysSince > 180) {
+                                Object.values(lastServiceInfo).forEach(info => {
+                                    if (info && info.hours) {
+                                        if (info.hours > 600) {
                                             alertStatus = 'urgent';
                                             alertColor = '#ffe6e6';
-                                            alertMessage = '🔴 URGENT - Oil change overdue!';
-                                        } else if (daysSince > 150 && alertStatus !== 'urgent') {
+                                            alertMessage = '🔴 URGENT - Oil change overdue (>600 hours)!';
+                                        } else if (info.hours > 550 && alertStatus !== 'urgent') {
                                             alertStatus = 'warning';
                                             alertColor = '#fff3cd';
-                                            alertMessage = '⚠️ WARNING - Oil change due soon';
+                                            alertMessage = '⚠️ WARNING - Oil change due soon (>550 hours)';
                                         }
                                     }
                                 });
@@ -435,14 +438,14 @@
                                             
                                             <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.1); font-size: 12px; color: #888;">
                                                 <p style="margin: 4px 0;"><strong>Last Services:</strong></p>
-                                                ${eng.mainEngine1 && lastServiceDates.mainEngine1 ? `<p style="margin: 2px 0;">• ${eng.mainEngine1}: ${lastServiceDates.mainEngine1.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.mainEngine1) / (1000*60*60*24))} days ago)</p>` : ''}
-                                                ${eng.mainEngine2 && lastServiceDates.mainEngine2 ? `<p style="margin: 2px 0;">• ${eng.mainEngine2}: ${lastServiceDates.mainEngine2.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.mainEngine2) / (1000*60*60*24))} days ago)</p>` : ''}
-                                                ${eng.auxEngine1 && lastServiceDates.auxEngine1 ? `<p style="margin: 2px 0;">• ${eng.auxEngine1}: ${lastServiceDates.auxEngine1.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.auxEngine1) / (1000*60*60*24))} days ago)</p>` : ''}
-                                                ${eng.auxEngine2 && lastServiceDates.auxEngine2 ? `<p style="margin: 2px 0;">• ${eng.auxEngine2}: ${lastServiceDates.auxEngine2.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.auxEngine2) / (1000*60*60*24))} days ago)</p>` : ''}
-                                                ${eng.hydraulic1 && lastServiceDates.hydraulic1 ? `<p style="margin: 2px 0;">• ${eng.hydraulic1}: ${lastServiceDates.hydraulic1.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.hydraulic1) / (1000*60*60*24))} days ago)</p>` : ''}
-                                                ${eng.hydraulic2 && lastServiceDates.hydraulic2 ? `<p style="margin: 2px 0;">• ${eng.hydraulic2}: ${lastServiceDates.hydraulic2.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.hydraulic2) / (1000*60*60*24))} days ago)</p>` : ''}
-                                                ${eng.propeller1 && lastServiceDates.propeller1 ? `<p style="margin: 2px 0;">• ${eng.propeller1}: ${lastServiceDates.propeller1.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.propeller1) / (1000*60*60*24))} days ago)</p>` : ''}
-                                                ${eng.propeller2 && lastServiceDates.propeller2 ? `<p style="margin: 2px 0;">• ${eng.propeller2}: ${lastServiceDates.propeller2.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.propeller2) / (1000*60*60*24))} days ago)</p>` : ''}
+                                                ${eng.mainEngine1 && lastServiceInfo.mainEngine1 ? `<p style="margin: 2px 0;">• ${eng.mainEngine1}: ${lastServiceInfo.mainEngine1.date.toLocaleDateString()} @ ${lastServiceInfo.mainEngine1.hours}h</p>` : eng.mainEngine1 ? `<p style="margin: 2px 0;">• ${eng.mainEngine1}: No service recorded</p>` : ''}
+                                                ${eng.mainEngine2 && lastServiceInfo.mainEngine2 ? `<p style="margin: 2px 0;">• ${eng.mainEngine2}: ${lastServiceInfo.mainEngine2.date.toLocaleDateString()} @ ${lastServiceInfo.mainEngine2.hours}h</p>` : eng.mainEngine2 ? `<p style="margin: 2px 0;">• ${eng.mainEngine2}: No service recorded</p>` : ''}
+                                                ${eng.auxEngine1 && lastServiceInfo.auxEngine1 ? `<p style="margin: 2px 0;">• ${eng.auxEngine1}: ${lastServiceInfo.auxEngine1.date.toLocaleDateString()} @ ${lastServiceInfo.auxEngine1.hours}h</p>` : eng.auxEngine1 ? `<p style="margin: 2px 0;">• ${eng.auxEngine1}: No service recorded</p>` : ''}
+                                                ${eng.auxEngine2 && lastServiceInfo.auxEngine2 ? `<p style="margin: 2px 0;">• ${eng.auxEngine2}: ${lastServiceInfo.auxEngine2.date.toLocaleDateString()} @ ${lastServiceInfo.auxEngine2.hours}h</p>` : eng.auxEngine2 ? `<p style="margin: 2px 0;">• ${eng.auxEngine2}: No service recorded</p>` : ''}
+                                                ${eng.hydraulic1 && lastServiceInfo.hydraulic1 ? `<p style="margin: 2px 0;">• ${eng.hydraulic1}: ${lastServiceInfo.hydraulic1.date.toLocaleDateString()} @ ${lastServiceInfo.hydraulic1.hours}h</p>` : eng.hydraulic1 ? `<p style="margin: 2px 0;">• ${eng.hydraulic1}: No service recorded</p>` : ''}
+                                                ${eng.hydraulic2 && lastServiceInfo.hydraulic2 ? `<p style="margin: 2px 0;">• ${eng.hydraulic2}: ${lastServiceInfo.hydraulic2.date.toLocaleDateString()} @ ${lastServiceInfo.hydraulic2.hours}h</p>` : eng.hydraulic2 ? `<p style="margin: 2px 0;">• ${eng.hydraulic2}: No service recorded</p>` : ''}
+                                                ${eng.propeller1 && lastServiceInfo.propeller1 ? `<p style="margin: 2px 0;">• ${eng.propeller1}: ${lastServiceInfo.propeller1.date.toLocaleDateString()} @ ${lastServiceInfo.propeller1.hours}h</p>` : eng.propeller1 ? `<p style="margin: 2px 0;">• ${eng.propeller1}: No service recorded</p>` : ''}
+                                                ${eng.propeller2 && lastServiceInfo.propeller2 ? `<p style="margin: 2px 0;">• ${eng.propeller2}: ${lastServiceInfo.propeller2.date.toLocaleDateString()} @ ${lastServiceInfo.propeller2.hours}h</p>` : eng.propeller2 ? `<p style="margin: 2px 0;">• ${eng.propeller2}: No service recorded</p>` : ''}
                                             </div>
                                         </div>
                                     </div>
