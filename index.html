@@ -385,20 +385,69 @@
                     ${savedEngines.length > 0 ? `
                         <div style="margin-top: 20px;">
                             <label style="font-weight: 600; margin-bottom: 12px; display: block;">Saved Ferries:</label>
-                            ${savedEngines.map(eng => `
-                                <div class="card" style="margin-bottom: 10px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                                        <div style="font-weight: 600; font-size: 15px;">${eng.name}</div>
-                                        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px; width: auto;" onclick="deleteEngine('${eng.id}')">✕ Delete</button>
+                            ${savedEngines.map(eng => {
+                                const lastServiceDates = {};
+                                const equipmentNames = ['mainEngine1', 'mainEngine2', 'auxEngine1', 'auxEngine2', 'hydraulic1', 'hydraulic2', 'propeller1', 'propeller2'];
+                                
+                                equipmentNames.forEach(eq => {
+                                    if (eng[eq]) {
+                                        const latest = Storage.getLatestRecord(eng[eq]);
+                                        lastServiceDates[eq] = latest ? new Date(latest.date) : null;
+                                    }
+                                });
+                                
+                                let alertStatus = 'none';
+                                let alertColor = '#fff';
+                                let alertMessage = '';
+                                
+                                Object.values(lastServiceDates).forEach(date => {
+                                    if (date) {
+                                        const daysSince = Math.floor((Date.now() - date) / (1000 * 60 * 60 * 24));
+                                        if (daysSince > 180) {
+                                            alertStatus = 'urgent';
+                                            alertColor = '#ffe6e6';
+                                            alertMessage = '🔴 URGENT - Oil change overdue!';
+                                        } else if (daysSince > 150 && alertStatus !== 'urgent') {
+                                            alertStatus = 'warning';
+                                            alertColor = '#fff3cd';
+                                            alertMessage = '⚠️ WARNING - Oil change due soon';
+                                        }
+                                    }
+                                });
+                                
+                                return `
+                                    <div class="card" style="margin-bottom: 10px; background-color: ${alertColor}; border-left: 4px solid ${alertStatus === 'urgent' ? '#dc3545' : alertStatus === 'warning' ? '#ff9800' : '#ddd'};">
+                                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                                            <div>
+                                                <div style="font-weight: 600; font-size: 15px;">${eng.name}</div>
+                                                ${alertMessage ? `<div style="font-weight: 600; margin-top: 5px; font-size: 12px;">${alertMessage}</div>` : ''}
+                                            </div>
+                                            <div style="display: flex; gap: 5px;">
+                                                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 11px; width: auto;" onclick="editEngine('${eng.id}')">✏️ Edit</button>
+                                                <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px; width: auto;" onclick="deleteEngine('${eng.id}')">✕ Delete</button>
+                                            </div>
+                                        </div>
+                                        <div style="font-size: 13px; color: #666; line-height: 1.8;">
+                                            <p><strong>Main Engines:</strong> ${eng.mainEngine1 || '-'}${eng.mainEngine2 ? ', ' + eng.mainEngine2 : ''}</p>
+                                            <p><strong>Aux Engines:</strong> ${eng.auxEngine1 || '-'}${eng.auxEngine2 ? ', ' + eng.auxEngine2 : ''}</p>
+                                            <p><strong>Hydraulic Backs:</strong> ${eng.hydraulic1 || '-'}${eng.hydraulic2 ? ', ' + eng.hydraulic2 : ''}</p>
+                                            <p><strong>Propellers:</strong> ${eng.propeller1 || '-'}${eng.propeller2 ? ', ' + eng.propeller2 : ''}</p>
+                                            
+                                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.1); font-size: 12px; color: #888;">
+                                                <p style="margin: 4px 0;"><strong>Last Services:</strong></p>
+                                                ${eng.mainEngine1 && lastServiceDates.mainEngine1 ? `<p style="margin: 2px 0;">• ${eng.mainEngine1}: ${lastServiceDates.mainEngine1.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.mainEngine1) / (1000*60*60*24))} days ago)</p>` : ''}
+                                                ${eng.mainEngine2 && lastServiceDates.mainEngine2 ? `<p style="margin: 2px 0;">• ${eng.mainEngine2}: ${lastServiceDates.mainEngine2.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.mainEngine2) / (1000*60*60*24))} days ago)</p>` : ''}
+                                                ${eng.auxEngine1 && lastServiceDates.auxEngine1 ? `<p style="margin: 2px 0;">• ${eng.auxEngine1}: ${lastServiceDates.auxEngine1.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.auxEngine1) / (1000*60*60*24))} days ago)</p>` : ''}
+                                                ${eng.auxEngine2 && lastServiceDates.auxEngine2 ? `<p style="margin: 2px 0;">• ${eng.auxEngine2}: ${lastServiceDates.auxEngine2.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.auxEngine2) / (1000*60*60*24))} days ago)</p>` : ''}
+                                                ${eng.hydraulic1 && lastServiceDates.hydraulic1 ? `<p style="margin: 2px 0;">• ${eng.hydraulic1}: ${lastServiceDates.hydraulic1.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.hydraulic1) / (1000*60*60*24))} days ago)</p>` : ''}
+                                                ${eng.hydraulic2 && lastServiceDates.hydraulic2 ? `<p style="margin: 2px 0;">• ${eng.hydraulic2}: ${lastServiceDates.hydraulic2.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.hydraulic2) / (1000*60*60*24))} days ago)</p>` : ''}
+                                                ${eng.propeller1 && lastServiceDates.propeller1 ? `<p style="margin: 2px 0;">• ${eng.propeller1}: ${lastServiceDates.propeller1.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.propeller1) / (1000*60*60*24))} days ago)</p>` : ''}
+                                                ${eng.propeller2 && lastServiceDates.propeller2 ? `<p style="margin: 2px 0;">• ${eng.propeller2}: ${lastServiceDates.propeller2.toLocaleDateString()} (${Math.floor((Date.now() - lastServiceDates.propeller2) / (1000*60*60*24))} days ago)</p>` : ''}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div style="font-size: 13px; color: #666; line-height: 1.6;">
-                                        <p><strong>Main Engines:</strong> ${eng.mainEngine1}${eng.mainEngine2 ? ', ' + eng.mainEngine2 : ''}</p>
-                                        <p><strong>Aux Engines:</strong> ${eng.auxEngine1}${eng.auxEngine2 ? ', ' + eng.auxEngine2 : ''}</p>
-                                        <p><strong>Hydraulic Backs:</strong> ${eng.hydraulic1}${eng.hydraulic2 ? ', ' + eng.hydraulic2 : ''}</p>
-                                        <p><strong>Propellers:</strong> ${eng.propeller1}${eng.propeller2 ? ', ' + eng.propeller2 : ''}</p>
-                                    </div>
-                                </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </div>
                     ` : ''}
                 </div>
@@ -470,8 +519,108 @@
             renderHome();
         }
 
+        function editEngine(id) {
+            const ferry = Storage.getAllEngines().find(e => e.id === id);
+            if (!ferry) return;
+            
+            const html = `
+                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+                    <div style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                        <h3 style="margin-top: 0;">Edit Ferry: ${ferry.name}</h3>
+                        <form onsubmit="handleEditEngine(event, '${id}')">
+                            <div class="form-group">
+                                <label class="form-label">Ferry Name</label>
+                                <input type="text" id="editFerryName" value="${ferry.name}" class="form-input" required>
+                            </div>
+                            
+                            <div style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                                <p style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Equipment:</p>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label" style="font-size: 13px;">Main Engine 1</label>
+                                        <input type="text" id="editMainEngine1" value="${ferry.mainEngine1 || ''}" class="form-input" style="padding: 8px;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label" style="font-size: 13px;">Main Engine 2</label>
+                                        <input type="text" id="editMainEngine2" value="${ferry.mainEngine2 || ''}" class="form-input" style="padding: 8px;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label" style="font-size: 13px;">Aux Engine 1</label>
+                                        <input type="text" id="editAuxEngine1" value="${ferry.auxEngine1 || ''}" class="form-input" style="padding: 8px;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label" style="font-size: 13px;">Aux Engine 2</label>
+                                        <input type="text" id="editAuxEngine2" value="${ferry.auxEngine2 || ''}" class="form-input" style="padding: 8px;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label" style="font-size: 13px;">Hydraulic Back 1</label>
+                                        <input type="text" id="editHydraulic1" value="${ferry.hydraulic1 || ''}" class="form-input" style="padding: 8px;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label" style="font-size: 13px;">Hydraulic Back 2</label>
+                                        <input type="text" id="editHydraulic2" value="${ferry.hydraulic2 || ''}" class="form-input" style="padding: 8px;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label" style="font-size: 13px;">Propeller 1</label>
+                                        <input type="text" id="editPropeller1" value="${ferry.propeller1 || ''}" class="form-input" style="padding: 8px;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label" style="font-size: 13px;">Propeller 2</label>
+                                        <input type="text" id="editPropeller2" value="${ferry.propeller2 || ''}" class="form-input" style="padding: 8px;">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px;">
+                                <button type="submit" class="btn btn-primary" style="flex: 1;">✓ Save Changes</button>
+                                <button type="button" class="btn" style="flex: 1; background: #ddd; color: #333;" onclick="closeEditModal()">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function handleEditEngine(event, id) {
+            event.preventDefault();
+            
+            const updatedFerry = {
+                name: document.getElementById('editFerryName').value.trim(),
+                mainEngine1: document.getElementById('editMainEngine1').value.trim(),
+                mainEngine2: document.getElementById('editMainEngine2').value.trim(),
+                auxEngine1: document.getElementById('editAuxEngine1').value.trim(),
+                auxEngine2: document.getElementById('editAuxEngine2').value.trim(),
+                hydraulic1: document.getElementById('editHydraulic1').value.trim(),
+                hydraulic2: document.getElementById('editHydraulic2').value.trim(),
+                propeller1: document.getElementById('editPropeller1').value.trim(),
+                propeller2: document.getElementById('editPropeller2').value.trim()
+            };
+            
+            if (!updatedFerry.name) {
+                alert('Please enter ferry name');
+                return;
+            }
+            
+            const engines = Storage.getAllEngines();
+            const index = engines.findIndex(e => e.id === id);
+            if (index !== -1) {
+                engines[index] = { id, ...updatedFerry };
+                Storage.saveEngines(engines);
+            }
+            
+            closeEditModal();
+            renderHome();
+        }
+
+        function closeEditModal() {
+            const modal = document.querySelector('[style*="position: fixed"]');
+            if (modal) modal.remove();
+        }
+
         function deleteEngine(id) {
-            if (confirm('Delete this engine series?')) {
+            if (confirm('Delete this ferry?')) {
                 Storage.deleteEngine(id);
                 renderHome();
             }
