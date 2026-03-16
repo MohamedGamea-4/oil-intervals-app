@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferry Fleet Oil Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1976D2;
+            --primary-dark: #1565C0;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --danger: #F44336;
+            --gray-100: #f5f5f5;
+            --gray-200: #eeeeee;
+            --gray-300: #e0e0e0;
+            --gray-600: #757575;
+            --gray-800: #424242;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: var(--gray-100);
+            color: var(--gray-800);
+            line-height: 1.5;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .user-role {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid var(--gray-300);
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 16px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 13px;
+            color: var(--gray-600);
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            background: var(--gray-100);
+        }
+
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-tab .tab-icon {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Login Screen */
+        .login-container {
+            max-width: 400px;
+            margin: 60px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-logo .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .login-logo h1 {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .login-logo p {
+            color: var(--gray-600);
+            font-size: 14px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--gray-800);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #43A047;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #E53935;
+        }
+
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-300);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 16px;
+        }
+
+        /* Dashboard Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-card.urgent {
+            border-left: 4px solid var(--danger);
+        }
+
+        .stat-card.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .stat-card.ok {
+            border-left: 4px solid var(--success);
+        }
+
+        .stat-card.info {
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 14px;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        th {
+            background: var(--gray-100);
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gray-600);
+            text-transform: uppercase;
+        }
+
+        tr:hover {
+            background: var(--gray-100);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-ok {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .status-warning {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .status-danger {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .status-overdue {
+            background: #F44336;
+            color: white;
+        }
+
+        /* Vessel Type Badges */
+        .vessel-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .vessel-ferry {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .vessel-bridge {
+            background: #F3E5F5;
+            color: #7B1FA2;
+        }
+
+        /* Engine Type Badges */
+        .engine-main {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .engine-aux {
+            background: #FFF8E1;
+            color: #F57F17;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--gray-600);
+            margin-bottom: 4px;
+        }
+
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--gray-300);
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray-600);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-600);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-warning {
+            background: #FFF3E0;
+            border: 1px solid #FFB74D;
+            color: #E65100;
+        }
+
+        .alert-danger {
+            background: #FFEBEE;
+            border: 1px solid #EF5350;
+            color: #C62828;
+        }
+
+        .alert-info {
+            background: #E3F2FD;
+            border: 1px solid #64B5F6;
+            color: #1565C0;
+        }
+
+        .alert-success {
+            background: #E8F5E9;
+            border: 1px solid #81C784;
+            color: #2E7D32;
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* Vessel List */
+        .vessel-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .vessel-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+
+        .vessel-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .vessel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .vessel-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .vessel-engines {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .engine-mini {
+            padding: 8px;
+            background: var(--gray-100);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .engine-mini-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .engine-mini-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.ok { background: var(--success); }
+        .status-dot.warning { background: var(--warning); }
+        .status-dot.danger { background: var(--danger); }
+        .status-dot.unknown { background: var(--gray-300); }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .progress-ok { background: var(--success); }
+        .progress-warning { background: var(--warning); }
+        .progress-danger { background: var(--danger); }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tab {
+                padding: 10px 8px;
+                font-size: 11px;
+            }
+
+            .nav-tab .tab-icon {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // ============================================
+        // DATA CONFIGURATION
+        // ============================================
+        const CONFIG = {
+            OIL_CHANGE_INTERVAL_HOURS: 250,
+            WARNING_THRESHOLD_HOURS: 50,
+            CRITICAL_THRESHOLD_HOURS: 20,
+            OIL_TYPES: [
+                'SAE 30', 'SAE 40', 'SAE 50',
+                '15W-40', '20W-50',
+                'Marine Diesel Oil (MDO)',
+                'Trunk Piston Engine Oil (TPEO)',
+                'System Oil'
+            ],
+            USER_ROLES: {
+                TECHNICIAN: 'technician',
+                SUPERVISOR: 'supervisor',
+                ADMIN: 'admin'
+            },
+            ROLE_LABELS: {
+                technician: 'Technician',
+                supervisor: 'Supervisor',
+                admin: 'Administrator'
+            }
+        };
+
+        // Generate fleet data: 22 ferries + 3 bridges
+        function generateFleetData() {
+            const vessels = [];
+            
+            // 22 Ferries
+            for (let i = 1; i <= 22; i++) {
+                vessels.push({
+                    id: `ferry-${i}`,
+                    name: `Ferry ${String(i).padStart(2, '0')}`,
+                    type: 'ferry',
+                    engines: [
+                        { id: `ferry-${i}-main-1`, name: 'Main Engine 1', type: 'main', vesselId: `ferry-${i}` },
+                        { id: `ferry-${i}-main-2`, name: 'Main Engine 2', type: 'main', vesselId: `ferry-${i}` },
+                        { id: `ferry-${i}-aux-1`, name: 'Auxiliary Engine 1', type: 'auxiliary', vesselId: `ferry-${i}` },
+                        { id: `ferry-${i}-aux-2`, name: 'Auxiliary Engine 2', type: 'auxiliary', vesselId: `ferry-${i}` }
+                    ]
+                });
+            }
+            
+            // 3 Bridges
+            for (let i = 1; i <= 3; i++) {
+                vessels.push({
+                    id: `bridge-${i}`,
+                    name: `Bridge ${String(i).padStart(2, '0')}`,
+                    type: 'bridge',
+                    engines: [
+                        { id: `bridge-${i}-main-1`, name: 'Main Engine 1', type: 'main', vesselId: `bridge-${i}` },
+                        { id: `bridge-${i}-main-2`, name: 'Main Engine 2', type: 'main', vesselId: `bridge-${i}` },
+                        { id: `bridge-${i}-aux-1`, name: 'Auxiliary Engine 1', type: 'auxiliary', vesselId: `bridge-${i}` },
+                        { id: `bridge-${i}-aux-2`, name: 'Auxiliary Engine 2', type: 'auxiliary', vesselId: `bridge-${i}` }
+                    ]
+                });
+            }
+            
+            return vessels;
+        }
+
+        const FLEET = generateFleetData();
+
+        // ============================================
+        // STORAGE SERVICE
+        // ============================================
+        const Storage = {
+            KEYS: {
+                OIL_RECORDS: 'fleet_oil_records',
+                ENGINE_HOURS: 'fleet_engine_hours',
+                USERS: 'fleet_users',
+                CURRENT_USER: 'fleet_current_user'
+            },
+
+            get(key) {
+                try {
+                    const data = localStorage.getItem(key);
+                    return data ? JSON.parse(data) : null;
+                } catch (e) {
+                    console.error('Storage get error:', e);
+                    return null;
+                }
+            },
+
+            set(key, value) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch (e) {
+                    console.error('Storage set error:', e);
+                }
+            },
+
+            getOilRecords() {
+                return this.get(this.KEYS.OIL_RECORDS) || [];
+            },
+
+            addOilRecord(record) {
+                const records = this.getOilRecords();
+                const newRecord = {
+                    id: Date.now().toString(),
+                    ...record,
+                    createdAt: new Date().toISOString(),
+                    createdBy: App.state.currentUser?.username || 'system'
+                };
+                records.push(newRecord);
+                this.set(this.KEYS.OIL_RECORDS, records);
+                return newRecord;
+            },
+
+            getEngineHours() {
+                return this.get(this.KEYS.ENGINE_HOURS) || {};
+            },
+
+            setEngineHours(engineId, hours) {
+                const allHours = this.getEngineHours();
+                allHours[engineId] = {
+                    hours: parseFloat(hours),
+                    updatedAt: new Date().toISOString(),
+                    updatedBy: App.state.currentUser?.username || 'system'
+                };
+                this.set(this.KEYS.ENGINE_HOURS, allHours);
+            },
+
+            getLatestOilChange(engineId) {
+                const records = this.getOilRecords()
+                    .filter(r => r.engineId === engineId)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+                return records[0] || null;
+            },
+
+            deleteRecord(id) {
+                const records = this.getOilRecords().filter(r => r.id !== id);
+                this.set(this.KEYS.OIL_RECORDS, records);
+            },
+
+            getUsers() {
+                let users = this.get(this.KEYS.USERS);
+                if (!users || users.length === 0) {
+                    users = [
+                        { username: 'admin', password: 'admin123', role: 'admin', name: 'Administrator' },
+                        { username: 'supervisor', password: 'super123', role: 'supervisor', name: 'Supervisor' },
+                        { username: 'tech', password: 'tech123', role: 'technician', name: 'Technician' }
+                    ];
+                    this.set(this.KEYS.USERS, users);
+                }
+                return users;
+            },
+
+            getCurrentUser() {
+                return this.get(this.KEYS.CURRENT_USER);
+            },
+
+            setCurrentUser(user) {
+                this.set(this.KEYS.CURRENT_USER, user);
+            },
+
+            clearCurrentUser() {
+                localStorage.removeItem(this.KEYS.CURRENT_USER);
+            }
+        };
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function getEngineStatus(engineId) {
+            const lastChange = Storage.getLatestOilChange(engineId);
+            const currentHoursData = Storage.getEngineHours()[engineId];
+            
+            if (!lastChange || !currentHoursData) {
+                return { status: 'unknown', hoursUsed: 0, hoursRemaining: CONFIG.OIL_CHANGE_INTERVAL_HOURS, percentage: 0 };
+            }
+
+            const hoursAtChange = lastChange.engineHours;
+            const currentHours = currentHoursData.hours;
+            const hoursUsed = currentHours - hoursAtChange;
+            const hoursRemaining = CONFIG.OIL_CHANGE_INTERVAL_HOURS - hoursUsed;
+            const percentage = Math.min(100, (hoursUsed / CONFIG.OIL_CHANGE_INTERVAL_HOURS) * 100);
+
+            let status = 'ok';
+            if (hoursRemaining <= 0) {
+                status = 'overdue';
+            } else if (hoursRemaining <= CONFIG.CRITICAL_THRESHOLD_HOURS) {
+                status = 'danger';
+            } else if (hoursRemaining <= CONFIG.WARNING_THRESHOLD_HOURS) {
+                status = 'warning';
+            }
+
+            return { status, hoursUsed, hoursRemaining, percentage, lastChange, currentHours };
+        }
+
+        function getFleetStats() {
+            let ok = 0, warning = 0, danger = 0, overdue = 0, unknown = 0;
+
+            FLEET.forEach(vessel => {
+                vessel.engines.forEach(engine => {
+                    const status = getEngineStatus(engine.id);
+                    switch (status.status) {
+                        case 'ok': ok++; break;
+                        case 'warning': warning++; break;
+                        case 'danger': danger++; break;
+                        case 'overdue': overdue++; break;
+                        default: unknown++;
+                    }
+                });
+            });
+
+            return { ok, warning, danger, overdue, unknown, total: FLEET.length * 4 };
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric'
+            });
+        }
+
+        function formatDateTime(dateString) {
+            return new Date(dateString).toLocaleString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        function canEdit(role) {
+            return role === 'admin' || role === 'supervisor' || role === 'technician';
+        }
+
+        function canDelete(role) {
+            return role === 'admin' || role === 'supervisor';
+        }
+
+        function canManageUsers(role) {
+            return role === 'admin';
+        }
+
+        function canViewReports(role) {
+            return role === 'admin' || role === 'supervisor';
+        }
+
+        // ============================================
+        // APP STATE AND RENDERING
+        // ============================================
+        const App = {
+            state: {
+                currentUser: null,
+                activeScreen: 'dashboard',
+                filters: {
+                    vesselType: 'all',
+                    status: 'all',
+                    vessel: 'all'
+                }
+            },
+
+            init() {
+                const savedUser = Storage.getCurrentUser();
+                if (savedUser) {
+                    this.state.currentUser = savedUser;
+                }
+                this.render();
+            },
+
+            login(username, password) {
+                const users = Storage.getUsers();
+                const user = users.find(u => u.username === username && u.password === password);
+                if (user) {
+                    this.state.currentUser = user;
+                    Storage.setCurrentUser(user);
+                    this.render();
+                    return true;
+                }
+                return false;
+            },
+
+            logout() {
+                this.state.currentUser = null;
+                Storage.clearCurrentUser();
+                this.render();
+            },
+
+            setScreen(screen) {
+                this.state.activeScreen = screen;
+                this.render();
+            },
+
+            render() {
+                const app = document.getElementById('app');
+                
+                if (!this.state.currentUser) {
+                    app.innerHTML = this.renderLoginScreen();
+                } else {
+                    app.innerHTML = this.renderMainApp();
+                }
+                
+                this.attachEventListeners();
+            },
+
+            renderLoginScreen() {
+                return `
+                    <div class="app-container">
+                        <div class="login-container">
+                            <div class="login-logo">
+                                <div class="icon">⚓</div>
+                                <h1>Fleet Oil Management</h1>
+                                <p>Ferry & Bridge Engine Maintenance System</p>
+                            </div>
+                            <form id="loginForm">
+                                <div class="form-group">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" class="form-input" id="loginUsername" required placeholder="Enter username">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" class="form-input" id="loginPassword" required placeholder="Enter password">
+                                </div>
+                                <div id="loginError" class="alert alert-danger" style="display: none;">
+                                    Invalid username or password
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Login</button>
+                            </form>
+                            <div style="margin-top: 20px; padding: 15px; background: var(--gray-100); border-radius: 6px; font-size: 13px;">
+                                <strong>Demo Credentials:</strong><br>
+                                Admin: admin / admin123<br>
+                                Supervisor: supervisor / super123<br>
+                                Technician: tech / tech123
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderMainApp() {
+                const user = this.state.currentUser;
+                const showUsersTab = canManageUsers(user.role);
+                const showReportsTab = canViewReports(user.role);
+
+                return `
+                    <div class="app-container">
+                        <header class="header">
+                            <div class="header-title">⚓ Fleet Oil Management</div>
+                            <div class="user-info">
+                                <span>${user.name}</span>
+                                <span class="user-role">${CONFIG.ROLE_LABELS[user.role]}</span>
+                                <button class="logout-btn" onclick="App.logout()">Logout</button>
+                            </div>
+                        </header>
+                        
+                        <nav class="nav-tabs">
+                            <button class="nav-tab ${this.state.activeScreen === 'dashboard' ? 'active' : ''}" onclick="App.setScreen('dashboard')">
+                                <span class="tab-icon">📊</span>
+                                Dashboard
+                            </button>
+                            <button class="nav-tab ${this.state.activeScreen === 'vessels' ? 'active' : ''}" onclick="App.setScreen('vessels')">
+                                <span class="tab-icon">🚢</span>
+                                Fleet
+                            </button>
+                            <button class="nav-tab ${this.state.activeScreen === 'record' ? 'active' : ''}" onclick="App.setScreen('record')">
+                                <span class="tab-icon">➕</span>
+                                Record
+                            </button>
+                            <button class="nav-tab ${this.state.activeScreen === 'history' ? 'active' : ''}" onclick="App.setScreen('history')">
+                                <span class="tab-icon">📋</span>
+                                History
+                            </button>
+                            ${showReportsTab ? `
+                            <button class="nav-tab ${this.state.activeScreen === 'reports' ? 'active' : ''}" onclick="App.setScreen('reports')">
+                                <span class="tab-icon">📈</span>
+                                Reports
+                            </button>
+                            ` : ''}
+                            ${showUsersTab ? `
+                            <button class="nav-tab ${this.state.activeScreen === 'users' ? 'active' : ''}" onclick="App.setScreen('users')">
+                                <span class="tab-icon">👥</span>
+                                Users
+                            </button>
+                            ` : ''}
+                        </nav>
+
+                        <main class="main-content">
+                            ${this.renderActiveScreen()}
+                        </main>
+                    </div>
+
+                    <div id="modalOverlay" class="modal-overlay">
+                        <div class="modal" id="modalContent"></div>
+                    </div>
+                `;
+            },
+
+            renderActiveScreen() {
+                switch (this.state.activeScreen) {
+                    case 'dashboard': return this.renderDashboard();
+                    case 'vessels': return this.renderVessels();
+                    case 'record': return this.renderRecordForm();
+                    case 'history': return this.renderHistory();
+                    case 'reports': return this.renderReports();
+                    case 'users': return this.renderUsers();
+                    default: return this.renderDashboard();
+                }
+            },
+
+            renderDashboard() {
+                const stats = getFleetStats();
+                const records = Storage.getOilRecords();
+                
+                return `
+                    <div class="screen active">
+                        <div class="section-header">
+                            <h2 class="section-title">Dashboard</h2>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card urgent">
+                                <div class="stat-value" style="color: var(--danger);">${stats.overdue}</div>
+                                <div class="stat-label">Overdue</div>
+                            </div>
+                            <div class="stat-card warning">
+                                <div class="stat-value" style="color: var(--danger);">${stats.danger}</div>
+                                <div class="stat-label">Critical (&lt;${CONFIG.CRITICAL_THRESHOLD_HOURS}h)</div>
+                            </div>
+                            <div class="stat-card warning">
+                                <div class="stat-value" style="color: var(--warning);">${stats.warning}</div>
+                                <div class="stat-label">Warning (&lt;${CONFIG.WARNING_THRESHOLD_HOURS}h)</div>
+                            </div>
+                            <div class="stat-card ok">
+                                <div class="stat-value" style="color: var(--success);">${stats.ok}</div>
+                                <div class="stat-label">OK</div>
+                            </div>
+                            <div class="stat-card info">
+                                <div class="stat-value">${stats.unknown}</div>
+                                <div class="stat-label">No Data</div>
+                            </div>
+                            <div class="stat-card info">
+                                <div class="stat-value">${stats.total}</div>
+                                <div class="stat-label">Total Engines</div>
+                            </div>
+                        </div>
+
+                        ${records.length === 0 ? `
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="empty-state">
+                                        <div class="icon">✅</div>
+                                        <p>No oil change records yet</p>
+                                        <button class="btn btn-primary" onclick="App.setScreen('record')" style="margin-top: 16px;">Record First Oil Change</button>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="card-title">📊 Recent Records (Last 5)</span>
+                                </div>
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Vessel</th>
+                                                <th>Engine</th>
+                                                <th>Hours</th>
+                                                <th>Oil Type</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${records.slice(0, 5).map(record => {
+                                                const vessel = FLEET.find(v => v.engines.some(e => e.id === record.engineId));
+                                                const engine = vessel?.engines.find(e => e.id === record.engineId);
+                                                return `
+                                                    <tr>
+                                                        <td>${formatDate(record.date)}</td>
+                                                        <td>${vessel?.name || 'Unknown'}</td>
+                                                        <td>${engine?.name || 'Unknown'}</td>
+                                                        <td>${record.engineHours}h</td>
+                                                        <td>${record.oilType}</td>
+                                                    </tr>
+                                                `;
+                                            }).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `}
+                    </div>
+                `;
+            },
+
+            renderVessels() {
+                return `
+                    <div class="screen active">
+                        <div class="section-header">
+                            <h2 class="section-title">Fleet Management</h2>
+                        </div>
+
+                        <div class="vessel-list">
+                            ${FLEET.map(vessel => this.renderVesselCard(vessel)).join('')}
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderVesselCard(vessel) {
+                return `
+                    <div class="vessel-card">
+                        <div class="vessel-header">
+                            <div>
+                                <span class="vessel-badge vessel-${vessel.type}">${vessel.type.toUpperCase()}</span>
+                                <div class="vessel-name">${vessel.name}</div>
+                            </div>
+                        </div>
+                        <div class="vessel-engines">
+                            ${vessel.engines.map(engine => {
+                                const status = getEngineStatus(engine.id);
+                                return `
+                                    <div class="engine-mini">
+                                        <div class="engine-mini-name">${engine.name.replace(' Engine', '')}</div>
+                                        <div class="engine-mini-status">
+                                            <span class="status-dot ${status.status}"></span>
+                                            <span>${status.status === 'unknown' ? 'No data' : status.hoursRemaining.toFixed(0) + 'h'}</span>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderRecordForm() {
+                const today = new Date().toISOString().split('T')[0];
+
+                return `
+                    <div class="screen active">
+                        <div class="section-header">
+                            <h2 class="section-title">Record Oil Change</h2>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <form id="recordForm">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Vessel *</label>
+                                            <select class="form-select" id="recordVessel" required onchange="App.updateEngineSelect()">
+                                                <option value="">Select Vessel</option>
+                                                <optgroup label="Ferries">
+                                                    ${FLEET.filter(v => v.type === 'ferry').map(v => 
+                                                        `<option value="${v.id}">${v.name}</option>`
+                                                    ).join('')}
+                                                </optgroup>
+                                                <optgroup label="Bridges">
+                                                    ${FLEET.filter(v => v.type === 'bridge').map(v => 
+                                                        `<option value="${v.id}">${v.name}</option>`
+                                                    ).join('')}
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Engine *</label>
+                                            <select class="form-select" id="recordEngine" required disabled>
+                                                <option value="">Select Vessel First</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Current Engine Hours *</label>
+                                            <input type="number" class="form-input" id="recordHours" step="0.1" min="0" required placeholder="e.g., 1250.5">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Oil Type *</label>
+                                            <select class="form-select" id="recordOilType" required>
+                                                ${CONFIG.OIL_TYPES.map(type => `<option value="${type}">${type}</option>`).join('')}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Oil Quantity (Liters) *</label>
+                                            <input type="number" class="form-input" id="recordQuantity" step="0.1" min="0" required placeholder="e.g., 45">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Date of Change *</label>
+                                            <input type="date" class="form-input" id="recordDate" value="${today}" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Filter Changed?</label>
+                                            <select class="form-select" id="recordFilterChanged">
+                                                <option value="yes">Yes</option>
+                                                <option value="no">No</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Notes (Optional)</label>
+                                        <textarea class="form-input" id="recordNotes" rows="3" placeholder="Any observations, issues, or additional information..."></textarea>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-success btn-block">
+                                        ✓ Record Oil Change
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderHistory() {
+                const records = Storage.getOilRecords().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                return `
+                    <div class="screen active">
+                        <div class="section-header">
+                            <h2 class="section-title">Oil Change History</h2>
+                        </div>
+
+                        <div class="card">
+                            ${records.length === 0 ? `
+                                <div class="card-body">
+                                    <div class="empty-state">
+                                        <div class="icon">📋</div>
+                                        <p>No oil change records yet</p>
+                                        <button class="btn btn-primary" onclick="App.setScreen('record')" style="margin-top: 16px;">Record First Change</button>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Vessel</th>
+                                                <th>Engine</th>
+                                                <th>Hours</th>
+                                                <th>Oil Type</th>
+                                                <th>Quantity</th>
+                                                ${canDelete(this.state.currentUser.role) ? '<th>Action</th>' : ''}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${records.map(record => {
+                                                const vessel = FLEET.find(v => v.engines.some(e => e.id === record.engineId));
+                                                const engine = vessel?.engines.find(e => e.id === record.engineId);
+                                                return `
+                                                    <tr>
+                                                        <td>${formatDate(record.date)}</td>
+                                                        <td>
+                                                            ${vessel ? `
+                                                                <span class="vessel-badge vessel-${vessel.type}">${vessel.type.toUpperCase()}</span>
+                                                                ${vessel.name}
+                                                            ` : 'Unknown'}
+                                                        </td>
+                                                        <td>${engine?.name || record.engineId}</td>
+                                                        <td>${record.engineHours}h</td>
+                                                        <td>${record.oilType}</td>
+                                                        <td>${record.quantity}L</td>
+                                                        ${canDelete(this.state.currentUser.role) ? `
+                                                            <td>
+                                                                <button class="btn btn-sm btn-danger" onclick="App.deleteRecord('${record.id}')">Delete</button>
+                                                            </td>
+                                                        ` : ''}
+                                                    </tr>
+                                                `;
+                                            }).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderReports() {
+                const stats = getFleetStats();
+                const records = Storage.getOilRecords();
+                const totalOilUsed = records.reduce((sum, r) => sum + (parseFloat(r.quantity) || 0), 0);
+
+                return `
+                    <div class="screen active">
+                        <div class="section-header">
+                            <h2 class="section-title">Reports & Analytics</h2>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card info">
+                                <div class="stat-value">${records.length}</div>
+                                <div class="stat-label">Total Oil Changes</div>
+                            </div>
+                            <div class="stat-card info">
+                                <div class="stat-value">${totalOilUsed.toFixed(0)}L</div>
+                                <div class="stat-label">Total Oil Used</div>
+                            </div>
+                            <div class="stat-card info">
+                                <div class="stat-value">${stats.total}</div>
+                                <div class="stat-label">Total Engines</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Fleet Status Summary</span>
+                            </div>
+                            <div class="card-body">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                    <div>
+                                        <strong>By Status</strong>
+                                        <div style="margin-top: 12px; font-size: 14px;">
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                                <span>Overdue</span>
+                                                <strong style="color: var(--danger);">${stats.overdue}</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                                <span>Critical</span>
+                                                <strong style="color: var(--danger);">${stats.danger}</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                                <span>Warning</span>
+                                                <strong style="color: var(--warning);">${stats.warning}</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                                <span>OK</span>
+                                                <strong style="color: var(--success);">${stats.ok}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <strong>By Vessel Type</strong>
+                                        <div style="margin-top: 12px; font-size: 14px;">
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                                <span>Ferries</span>
+                                                <strong>22 vessels</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                <span>Bridges</span>
+                                                <strong>3 vessels</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderUsers() {
+                const users = Storage.getUsers();
+
+                return `
+                    <div class="screen active">
+                        <div class="section-header">
+                            <h2 class="section-title">User Management</h2>
+                        </div>
+
+                        <div class="card">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Name</th>
+                                            <th>Role</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${users.map(user => `
+                                            <tr>
+                                                <td>${user.username}</td>
+                                                <td>${user.name}</td>
+                                                <td>
+                                                    <span class="user-role" style="background: var(--primary); color: white;">
+                                                        ${CONFIG.ROLE_LABELS[user.role]}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Role Permissions</span>
+                            </div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Permission</th>
+                                            <th>Technician</th>
+                                            <th>Supervisor</th>
+                                            <th>Administrator</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>View Dashboard</td>
+                                            <td>✓</td>
+                                            <td>✓</td>
+                                            <td>✓</td>
+                                        </tr>
+                                        <tr>
+                                            <td>View Fleet</td>
+                                            <td>✓</td>
+                                            <td>✓</td>
+                                            <td>✓</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Record Oil Changes</td>
+                                            <td>✓</td>
+                                            <td>✓</td>
+                                            <td>✓</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Delete Records</td>
+                                            <td>✗</td>
+                                            <td>✓</td>
+                                            <td>✓</td>
+                                        </tr>
+                                        <tr>
+                                            <td>View Reports</td>
+                                            <td>✗</td>
+                                            <td>✓</td>
+                                            <td>✓</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Manage Users</td>
+                                            <td>✗</td>
+                                            <td>✗</td>
+                                            <td>✓</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            closeModal() {
+                document.getElementById('modalOverlay').classList.remove('active');
+            },
+
+            deleteRecord(id) {
+                if (confirm('Are you sure you want to delete this record?')) {
+                    Storage.deleteRecord(id);
+                    this.render();
+                }
+            },
+
+            updateEngineSelect() {
+                const vesselId = document.getElementById('recordVessel').value;
+                const engineSelect = document.getElementById('recordEngine');
+
+                if (!vesselId) {
+                    engineSelect.innerHTML = '<option value="">Select Vessel First</option>';
+                    engineSelect.disabled = true;
+                    return;
+                }
+
+                const vessel = FLEET.find(v => v.id === vesselId);
+                engineSelect.innerHTML = `
+                    <option value="">Select Engine</option>
+                    ${vessel.engines.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}
+                `;
+                engineSelect.disabled = false;
+            },
+
+            attachEventListeners() {
+                // Login form
+                const loginForm = document.getElementById('loginForm');
+                if (loginForm) {
+                    loginForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const username = document.getElementById('loginUsername').value;
+                        const password = document.getElementById('loginPassword').value;
+                        
+                        if (!this.login(username, password)) {
+                            document.getElementById('loginError').style.display = 'block';
+                        }
+                    });
+                }
+
+                // Record form
+                const recordForm = document.getElementById('recordForm');
+                if (recordForm) {
+                    recordForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        
+                        const vesselId = document.getElementById('recordVessel').value;
+                        const engineId = document.getElementById('recordEngine').value;
+                        const hours = parseFloat(document.getElementById('recordHours').value);
+                        const oilType = document.getElementById('recordOilType').value;
+                        const quantity = parseFloat(document.getElementById('recordQuantity').value);
+                        const date = document.getElementById('recordDate').value;
+                        const filterChanged = document.getElementById('recordFilterChanged').value;
+                        const notes = document.getElementById('recordNotes').value;
+
+                        if (!vesselId || !engineId || !hours || !oilType || !quantity || !date) {
+                            alert('Please fill in all required fields');
+                            return;
+                        }
+
+                        // Update engine hours
+                        Storage.setEngineHours(engineId, hours);
+
+                        // Add record
+                        Storage.addOilRecord({
+                            engineId,
+                            engineHours: hours,
+                            oilType,
+                            quantity,
+                            date: new Date(date).toISOString(),
+                            filterChanged,
+                            notes
+                        });
+
+                        alert('Oil change recorded successfully!');
+                        this.setScreen('dashboard');
+                    });
+                }
+
+                // Modal close on overlay click
+                const modalOverlay = document.getElementById('modalOverlay');
+                if (modalOverlay) {
+                    modalOverlay.addEventListener('click', (e) => {
+                        if (e.target === modalOverlay) {
+                            this.closeModal();
+                        }
+                    });
+                }
+            }
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+        });
+    </script>
+</body>
+</html>
